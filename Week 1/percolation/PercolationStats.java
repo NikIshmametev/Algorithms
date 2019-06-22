@@ -9,10 +9,17 @@ import edu.princeton.cs.algs4.StdStats;
 
 public class PercolationStats {
 
+    private int n;
+    private int T;
     private double[] x;
+    private double mean;
+    private double std;
 
     public PercolationStats(int n, int trials)     // perform trials ind-t exp-s on an nxn grid
     {
+        isvalid(n, trials);
+        this.n = n;
+        this.T = trials;
         this.x = new double[trials];
 
         for (int i = 0; i < trials; i++) {
@@ -22,9 +29,11 @@ public class PercolationStats {
             while (!cond) {
                 int row = StdRandom.uniform(n) + 1;
                 int col = StdRandom.uniform(n) + 1;
+                if (perc.isOpen(row, col))
+                    continue;
                 perc.open(row, col);
                 if (perc.percolates()) {
-                    x[i] = (double) t / (double) n;
+                    x[i] = (double) t / (n * n);
                     cond = true;
                 }
                 else
@@ -32,48 +41,54 @@ public class PercolationStats {
             }
         }
 
-        double m = mean(x);
-        double std = stddev(x);
-        double low = confidenceLo(m, std, trials);
-        double high = confidenceHi(m, std, trials);
-        System.out.println(String.format("mean                    = %f", m));
-        System.out.println(String.format("stddev                  = %f", std));
-        System.out.println(String.format("95%% confidence interval = [%f, %f]", low, high));
+        this.mean = mean();
+        this.std = stddev();
+        double low = confidenceLo();
+        double high = confidenceHi();
 
     }
 
 
-    private boolean isvalid(int n, int trials) {
-        if (n > 0 && trials > 0)
-            return true;
-        else {
+    private void isvalid(int grid, int trials) {
+        if (grid <= 0 || trials <= 0) {
             throw new IllegalArgumentException(
                     String.format("n:%d trials:%d", n, trials));
         }
     }
 
-    public double mean(double[] arr)    // sample mean of percolation threshold
+    public double mean()    // sample mean of percolation threshold
     {
-        return StdStats.mean(arr);
+        return StdStats.mean(x);
     }
 
-    public double stddev(double[] arr)  // sample standard deviation of percolation threshold
+    public double stddev()  // sample standard deviation of percolation threshold
     {
-        return StdStats.stddev(arr);
+        return StdStats.stddev(x);
     }
 
-    public double confidenceLo(double m, double std, int n)     // low  endpoint of 95% conf int
+    public double confidenceLo()     // low  endpoint of 95% conf int
     {
-        return m - 1.96 * std / Math.sqrt(n);
+        return mean - 1.96 * std / Math.sqrt(T);
     }
 
-    public double confidenceHi(double m, double std, int n)     // high endpoint of 95% conf int
+    public double confidenceHi()     // high endpoint of 95% conf int
     {
-        return m + 1.96 * std / Math.sqrt(n);
+        return mean + 1.96 * std / Math.sqrt(T);
     }
 
     public static void main(String[] args) {
         PercolationStats percolationStats1 = new PercolationStats(200, 100);
+        System.out.println(String.format("mean                    = %f", percolationStats1.mean));
+        System.out.println(String.format("stddev                  = %f", percolationStats1.std));
+        System.out.println(String.format("95%% confidence interval = [%f, %f]",
+                                         percolationStats1.confidenceLo(),
+                                         percolationStats1.confidenceHi()));
+
         PercolationStats percolationStats2 = new PercolationStats(200, 100);
+        System.out.println(String.format("mean                    = %f", percolationStats2.mean));
+        System.out.println(String.format("stddev                  = %f", percolationStats2.std));
+        System.out.println(String.format("95%% confidence interval = [%f, %f]",
+                                         percolationStats2.confidenceLo(),
+                                         percolationStats2.confidenceHi()));
     }
 }
