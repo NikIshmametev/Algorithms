@@ -1,1 +1,5 @@
 .idea
+.lift
+*.iml
+Week_1/percolation/.idea
+Week_1/percolation/.lift
